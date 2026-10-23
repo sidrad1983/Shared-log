@@ -204,6 +204,7 @@ img{max-width:100%}
 </div>
 
 <script src="config.js"></script>
+<script src="seed.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 const PLAN = {
@@ -287,8 +288,18 @@ async function pull(){
   for(const [id, s] of local) if(!byId.has(id) && queue.has(id)) merged.push(s);
   sessions = merged; lsSave();
 }
+function addSeeds(){
+  let done=[]; try{ done = JSON.parse(localStorage.getItem("shred-seeded")||"[]") }catch(e){}
+  for(const s of (window.SHRED_SEED||[])){
+    if(done.includes(s.id)) continue;
+    if(!sessions.find(x=>x.id===s.id)){ sessions.push(JSON.parse(JSON.stringify(s))); queue.add(s.id); }
+    done.push(s.id);
+  }
+  try{ localStorage.setItem("shred-seeded", JSON.stringify(done)) }catch(e){}
+  lsSave(); saveQueue();
+}
 async function initStore(){
-  sessions = lsLoad();
+  sessions = lsLoad(); addSeeds();
   if(!cfg.supabaseUrl || !window.supabase){ mode = "local"; return "ready"; }
   sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, { auth:{ persistSession:true, autoRefreshToken:true } });
   const { data:{ session } } = await sb.auth.getSession();
