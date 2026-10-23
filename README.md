@@ -1,13 +1,13 @@
 # Shred Log
 
-A phone-first workout logger for the Old Sckool Six-Week Shred plan, shared by Chris and Gary.
+A phone-first workout logger for the Old Sckool Six-Week Shred plan, shared by Chris and Garry.
 
 - Four training days (Back, Legs, Shoulders, Arms) with every movement, target sets × reps and coaching pointers
 - Log kg and reps per set, tick it off, and a 90-second rest timer starts
 - Last session's numbers show under each lift and as placeholders
 - Bodyweight, finisher minutes and notes per session
 - Progress tab: top set per lift, kg gained since the start, bodyweight trend, full history with edit and delete
-- Chris and Gary each have their own log; both can view and log for either (handy when training together)
+- Chris and Garry each have their own log; both can view and log for either (handy when training together)
 - Works offline in the gym and syncs when signal returns; installs to your home screen
 
 Live app: **https://sidrad1983.github.io/Shared-log/**
@@ -52,4 +52,4 @@ so earlier logs stay linked (see "Seated Row"). Commit, and the live app updates
 
 Run this in the SQL Editor:
 `insert into public.members (email, name) values ('them@example.com', 'Name');`
-Then add a button for them next to Chris and Gary in `index.html` (search for `data-who`).
+Then add a button for them next to Chris and Garry in `index.html` (search for `data-who`).

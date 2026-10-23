@@ -1,7 +1,7 @@
 {
   "name": "Shred Log",
   "short_name": "Shred",
-  "description": "Old Sckool Six-Week Shred workout logger for Chris and Gary",
+  "description": "Old Sckool Six-Week Shred workout logger for Chris and Garry",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -148,7 +148,7 @@ img{max-width:100%}
 <section class="auth" id="auth" hidden>
   <div class="eyebrow">Old Sckool · Six-Week Shred</div>
   <h1>Shred Log</h1>
-  <p id="auth-intro">Sign in to log your sets. Chris and Gary share one training log.</p>
+  <p id="auth-intro">Sign in to log your sets. Chris and Garry share one training log.</p>
   <form id="auth-form" novalidate>
     <div class="field"><label for="auth-email">Email</label><input id="auth-email" type="email" autocomplete="email" required></div>
     <div class="field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" minlength="6" required></div>
@@ -170,7 +170,7 @@ img{max-width:100%}
       </div>
     </div>
     <div class="whorow"><span class="lab">Lifter</span><div class="views" id="who" role="group" aria-label="Lifter">
-      <button data-who="Chris" aria-pressed="true">Chris</button><button data-who="Gary" aria-pressed="false">Gary</button></div></div>
+      <button data-who="Chris" aria-pressed="true">Chris</button><button data-who="Gary" aria-pressed="false">Garry</button></div></div>
     <div class="days" id="days" role="group" aria-label="Training day"></div>
     <div class="prog" aria-hidden="true"><i id="progbar" style="width:0%"></i></div>
   </header>
@@ -245,6 +245,9 @@ let sessions = [];          // all sessions, newest first
 let day = 1, view = "train", cur = null;
 let who = (()=>{ try{ return localStorage.getItem("shred-who")||"Chris" }catch(e){ return "Chris" } })();
 const whoOf = s => s.who || "Chris";
+// Display names. Garry's logs are stored under the id "Gary", so the spelling is fixed here only.
+const NAME = { Gary: "Garry" };
+const nameOf = w => NAME[w] || w;
 let store = null;           // {save(s), del(id)}, set in storage below
 let mode = "loading";
 
@@ -393,7 +396,7 @@ function renderDays(){
 }
 function renderTrain(){
   const p = PLAN[day];
-  $("title").textContent = `${who} · Day ${day} · ${p.name}`;
+  $("title").textContent = `${nameOf(who)} · Day ${day} · ${p.name}`;
   $("sub").textContent = `Week ${weekNo()} of 6 · ${p.sub} · complete in order`;
   $("bw").value = cur.bw ?? "";
   $("notes").value = cur.notes ?? "";
@@ -492,7 +495,7 @@ let confirmDel=null;
 function renderHist(){
   const done = sorted().filter(s=>s.finished);
   const p = PLAN[day];
-  let h = `<h3>${who} · Day ${day} · ${p.name} lifts</h3>`;
+  let h = `<h3>${nameOf(who)} · Day ${day} · ${p.name} lifts</h3>`;
   const prs = p.ex.map(([name])=>{
     const key=slug(name);
     const hist = done.filter(s=>s.day===day).map(s=>{
