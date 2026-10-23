@@ -10,7 +10,7 @@ A phone-first workout logger for the Old Sckool Six-Week Shred plan, shared by C
 - Chris and Gary each have their own log; both can view and log for either (handy when training together)
 - Works offline in the gym and syncs when signal returns; installs to your home screen
 
-Live app: **https://sidrad1983.github.io/shared-log/**
+Live app: **https://sidrad1983.github.io/Shared-log/**
 
 ## How it's built
 
@@ -31,7 +31,7 @@ means only the emails in the `members` table can read or write anything.
 1. **Supabase project:** create a free project at supabase.com (London region).
 2. **Database:** open SQL Editor → New query, paste `supabase/schema.sql`, put in both email addresses, and click Run.
 3. **Sign-in redirect:** go to Authentication → URL Configuration and set Site URL to
-   `https://sidrad1983.github.io/shared-log/`.
+   `https://sidrad1983.github.io/Shared-log/`.
 4. **Connect the app:** put the Project URL and anon public key from Project Settings → API into `config.js`.
 5. **GitHub Pages:** in the repo, go to Settings → Pages, set Source to "Deploy from a branch" with `main` / root, and click Save.
 

@@ -39,3 +39,8 @@ create policy "members can read the list" on public.members
 drop policy if exists "members share all sessions" on public.sessions;
 create policy "members share all sessions" on public.sessions
   for all to authenticated using (public.is_member()) with check (public.is_member());
+
+-- Chris's first workout (Tue 20 Oct 2026, Day 1 · Back), carried over from the claude.ai version of the app.
+insert into public.sessions (id, who, day, date, finished, data) values
+  ('s1792472330290', 'Chris', 1, '2026-10-20T05:43:35.115Z', true, $json${"bw":"","date":"2026-10-20T05:43:35.115Z","day":1,"ex":{"chest-supported-row":[{"done":true,"kg":"20","reps":"10"},{"done":true,"kg":"22.5","reps":"10"}],"lat-pulldown":[{"done":true,"kg":"42","reps":"12"},{"done":true,"kg":"50","reps":"12"}],"rear-delt-fly":[{"done":true,"kg":"10","reps":"15"},{"done":true,"kg":"8","reps":"15"}],"single-arm-cable-row":[{"done":true,"kg":"60","reps":"12"},{"done":true,"kg":"87.5","reps":"12"}],"straight-arm-pulldown":[{"done":true,"kg":"42.5","reps":"15"},{"done":true,"kg":"","reps":"15"}]},"fin":{"done":true,"mins":"10"},"finished":true,"id":"s1792472330290","notes":"","who":"Chris"}$json$::jsonb)
+on conflict (id) do nothing;
