@@ -6,10 +6,11 @@ create table if not exists public.members (
   name  text not null            -- "Chris" or "Gary": picks the lifter tab when that person signs in
 );
 
--- Who can sign in. To add Gary later, run:
---   insert into public.members (email, name) values ('gary@example.com', 'Gary');
+-- Who can sign in. To add someone else later, run:
+--   insert into public.members (email, name) values ('them@example.com', 'Name');
 insert into public.members (email, name) values
-  ('cdardis@svl.co.uk', 'Chris')
+  ('cdardis@svl.co.uk', 'Chris'),
+  ('Garry@copperblackcoffee.co.uk', 'Gary')
 on conflict (email) do update set name = excluded.name;
 
 create table if not exists public.sessions (
