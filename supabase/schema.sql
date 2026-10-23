@@ -1,15 +1,15 @@
 -- Shred Log database setup.
--- Paste this whole file into Supabase → SQL Editor → New query, edit the two emails below, then click Run.
+-- Paste this whole file into Supabase → SQL Editor → New query, then click Run. Safe to run more than once.
 
 create table if not exists public.members (
   email text primary key,
   name  text not null            -- "Chris" or "Gary": picks the lifter tab when that person signs in
 );
 
--- >>> EDIT THESE TWO LINES: the emails you and Gary will sign in with <<<
+-- Who can sign in. To add Gary later, run:
+--   insert into public.members (email, name) values ('gary@example.com', 'Gary');
 insert into public.members (email, name) values
-  ('CHRIS_EMAIL_HERE', 'Chris'),
-  ('GARY_EMAIL_HERE',  'Gary')
+  ('cdardis@svl.co.uk', 'Chris')
 on conflict (email) do update set name = excluded.name;
 
 create table if not exists public.sessions (
