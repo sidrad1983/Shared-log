@@ -43,6 +43,8 @@ h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;margi
 .whorow{display:flex;align-items:center;gap:8px;margin-top:10px}
 .whorow .lab{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .views button[data-who][aria-pressed="true"]{background:var(--gold);color:var(--on-gold)}
+.stamp{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);margin-top:4px;font-variant-numeric:tabular-nums}
+.wdate{width:150px}
 .days{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
 .day{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:7px 4px 6px;cursor:pointer;text-align:center;font-family:var(--display)}
 .day b{display:block;font-size:11px;letter-spacing:.1em;color:var(--muted);font-weight:700}
@@ -163,6 +165,7 @@ img{max-width:100%}
       <div>
         <div class="eyebrow">Old Sckool · Six-Week Shred</div>
         <h1 id="title">Day 1 · Back</h1>
+        <div class="stamp" id="stamp"></div>
       </div>
       <div class="views" role="group" aria-label="View">
         <button id="v-train" aria-pressed="true">Train</button>
@@ -178,6 +181,7 @@ img{max-width:100%}
   <main id="train">
     <div class="meta">
       <div class="sub" id="sub">Back detail · controlled reps · complete in order</div>
+      <div class="field"><label for="wdate">Workout date</label><input id="wdate" class="wdate" type="date"></div>
       <div class="field"><label for="bw">Bodyweight kg</label><input id="bw" class="bw" type="number" inputmode="decimal" step="0.1" placeholder="–"></div>
     </div>
     <div id="banner"></div>
@@ -361,6 +365,8 @@ function lastSets(d, key, excludeId){
   const s = finishedFor(d).find(s=>s.id!==excludeId && s.ex?.[key]?.some(r=>r.kg!==""||r.reps!==""));
   return s ? {date:s.date, rows:s.ex[key]} : null;
 }
+const longDate = iso => new Date(iso).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}); }
 function weekNo(){
   const all = sorted(); if(!all.length) return 1;
@@ -375,7 +381,7 @@ function newSession(d){
 }
 let saveT=null;
 function touch(){
-  if(cur.fresh){ delete cur.fresh; sessions.push(cur); }
+  if(cur.fresh){ delete cur.fresh; if(!cur.datePicked) cur.date = new Date().toISOString(); sessions.push(cur); }
   cur.date = cur.date || new Date().toISOString();
   setStatus("Saving…"); clearTimeout(saveT);
   saveT = setTimeout(()=>{ lsSave(); store.save(cur); }, 600);
@@ -397,6 +403,9 @@ function renderDays(){
 function renderTrain(){
   const p = PLAN[day];
   $("title").textContent = `${nameOf(who)} · Day ${day} · ${p.name}`;
+  const when = cur.fresh && !cur.datePicked ? new Date().toISOString() : cur.date;
+  $("stamp").textContent = longDate(when);
+  $("wdate").value = ymd(new Date(when)); $("wdate").max = ymd(new Date());
   $("sub").textContent = `Week ${weekNo()} of 6 · ${p.sub} · complete in order`;
   $("bw").value = cur.bw ?? "";
   $("notes").value = cur.notes ?? "";
@@ -457,11 +466,17 @@ $("list").addEventListener("click", e=>{
   else if(b.dataset.rm){ cur.ex[b.dataset.rm].pop(); touch(); renderTrain(); }
   else if(b.id==="fin-done"){ cur.fin.done=!cur.fin.done; if(cur.fin.done&&cur.fin.mins==="") cur.fin.mins=String(PLAN[day].fin[1]); touch(); renderTrain(); }
 });
+$("wdate").addEventListener("change", e=>{
+  if(!e.target.value) return;
+  const [y,m,d] = e.target.value.split("-").map(Number), now = new Date();
+  cur.date = new Date(y, m-1, d, now.getHours(), now.getMinutes()).toISOString(); cur.datePicked = true;
+  touch(); renderDays(); renderTrain();
+});
 $("bw").addEventListener("input", e=>{ cur.bw=e.target.value; touch(); });
 $("notes").addEventListener("input", e=>{ cur.notes=e.target.value; touch(); });
 $("finish").addEventListener("click", ()=>{
   if(cur.fresh) return setStatus("Log at least one set first");
-  cur.finished=true; cur.date=new Date().toISOString();
+  cur.finished=true;   // keeps the date the workout was logged (or the date picked)
   clearTimeout(saveT); lsSave(); store.save(cur); stopTimer();
   setStatus(`Finished · ${vol(cur).toLocaleString("en-GB")} kg moved`);
   renderDays(); renderTrain();
@@ -520,7 +535,7 @@ function renderHist(){
   if(!done.length) h += `<div class="empty">No finished workouts yet. Log your sets on the Train tab and tap <b>Finish workout</b>; they'll show up here with your top sets.</div>`;
   else h += `<div class="list" style="margin-top:0">` + done.map(s=>{
     const lines = PLAN[s.day].ex.map(([n])=>{ const rs=(s.ex[slug(n)]||[]).filter(r=>r.done); return rs.length?`<div><span>${n}</span><span>${rs.map(r=>`${r.kg||0}×${r.reps||0}`).join(", ")}</span></div>`:""; }).join("");
-    return `<section class="card"><div class="sess"><div><div class="k">Day ${s.day} · ${PLAN[s.day].name}</div><div class="d">${fmtDate(s.date)}${s.bw?` · ${s.bw} kg BW`:""}</div></div>
+    return `<section class="card"><div class="sess"><div><div class="k">Day ${s.day} · ${PLAN[s.day].name}</div><div class="d">${longDate(s.date)}${s.bw?` · ${s.bw} kg BW`:""}</div></div>
       <div class="v"><strong>${vol(s).toLocaleString("en-GB")} kg</strong>volume</div></div>
       <details><summary>Sets</summary><div class="sess-detail">${lines||"No sets ticked"}${s.fin?.done?`<div><span>Finisher</span><span>${s.fin.mins} min</span></div>`:""}${s.notes?`<div><span>Notes</span><span style="text-align:right">${esc(s.notes)}</span></div>`:""}</div>
       <div class="setbar"><button class="ghost" data-edit="${s.id}">Edit</button><button class="ghost ${confirmDel===s.id?"danger":""}" data-del="${s.id}">${confirmDel===s.id?"Tap again to delete":"Delete"}</button></div></details></section>`;
