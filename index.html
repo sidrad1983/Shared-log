@@ -599,7 +599,16 @@ document.addEventListener("visibilitychange", async ()=>{
   try{ const keep = cur?.id; await pull(); mode="cloud"; cur = sessions.find(s=>s.id===keep) || pickSession(day); renderDays(); view==="train"?renderTrain():renderHist(); }catch(e){}
 });
 window.addEventListener("online", ()=>{ if(mode==="offline") mode="cloud"; flush(); });
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator){
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r=>{
+    r.update().catch(()=>{});
+    document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") r.update().catch(()=>{}); });
+  }).catch(()=>{});
+  // a new version has taken over: reload once so it shows straight away
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", ()=>{ if(hadController && !reloaded){ reloaded = true; location.reload(); } });
+}
 </script>
 </body>
 </html>
