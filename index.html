@@ -52,6 +52,10 @@ h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1;margi
 .day[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
 .day[aria-pressed="true"] b{color:var(--on-gold);opacity:.75}
 .day .tick{color:var(--done)}
+.day i{display:block;font-style:normal;font-family:var(--body);font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.day i.done{color:var(--done)}
+.day i.open{color:var(--gold)}
+.day[aria-pressed="true"] i{color:var(--on-gold)}
 .day[aria-pressed="true"] .tick{color:var(--on-gold)}
 .meta{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end;margin:16px 0 6px}
 .meta .sub{color:var(--muted);font-size:13px;flex:1 1 200px;min-width:0}
@@ -381,7 +385,7 @@ function newSession(d){
 }
 let saveT=null;
 function touch(){
-  if(cur.fresh){ delete cur.fresh; if(!cur.datePicked) cur.date = new Date().toISOString(); sessions.push(cur); }
+  if(cur.fresh){ delete cur.fresh; if(!cur.datePicked) cur.date = new Date().toISOString(); sessions.push(cur); renderDays(); }
   cur.date = cur.date || new Date().toISOString();
   setStatus("Saving…"); clearTimeout(saveT);
   saveT = setTimeout(()=>{ lsSave(); store.save(cur); }, 600);
@@ -396,8 +400,11 @@ function pickSession(d){
 }
 function renderDays(){
   $("days").innerHTML = Object.entries(PLAN).map(([d,p])=>{
-    const n = finishedFor(+d).length;
-    return `<button class="day" data-d="${d}" aria-pressed="${+d===day}"><b>Day ${d}${n?` <span class="tick">✓${n}</span>`:""}</b><span>${p.name}</span></button>`;
+    // date line: the in-progress session if there is one, else the last finished one
+    const open = sorted().find(s=>s.day===+d && !s.finished), last = finishedFor(+d)[0];
+    const short = iso => new Date(iso).toLocaleDateString("en-GB",{weekday:"short",day:"numeric"});
+    const line = open ? `<i class="open">● ${short(open.date)}</i>` : last ? `<i class="done">✓ ${short(last.date)}</i>` : `<i>–</i>`;
+    return `<button class="day" data-d="${d}" aria-pressed="${+d===day}"><b>Day ${d}</b><span>${p.name}</span>${line}</button>`;
   }).join("");
 }
 function renderTrain(){
