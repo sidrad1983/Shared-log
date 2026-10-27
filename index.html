@@ -144,6 +144,8 @@ img{max-width:100%}
 .auth h1{font-size:44px;margin:6px 0 10px}
 .auth p{color:var(--muted);margin:0 0 20px;max-width:40ch}
 .auth form{display:flex;flex-direction:column;gap:12px}
+.auth form .primary{flex:none}
+.auth form .linkbtn{align-self:flex-start}
 .auth .err{color:var(--danger);font-size:13.5px;min-height:1.2em}
 .auth .ok{color:var(--done)}
 .linkbtn{background:none;border:0;color:var(--gold);font:600 14px var(--body);padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
@@ -160,7 +162,15 @@ img{max-width:100%}
     <div class="field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" minlength="6" required></div>
     <button class="primary" id="auth-go" type="submit">Sign in</button>
     <div class="err" id="auth-msg" role="status"></div>
+    <button class="linkbtn" id="auth-forgot" type="button">Forgot password?</button>
     <button class="linkbtn" id="auth-toggle" type="button">First time here? Create your account</button>
+  </form>
+  <form id="newpass-form" novalidate hidden>
+    <div class="field"><label for="newpass">New password</label><input id="newpass" type="password" autocomplete="new-password" minlength="6" required></div>
+    <div class="field"><label for="newpass2">Type it again</label><input id="newpass2" type="password" autocomplete="new-password" minlength="6" required></div>
+    <button class="primary" id="newpass-go" type="submit">Save new password</button>
+    <div class="err" id="newpass-msg" role="status"></div>
+    <button class="linkbtn" id="newpass-cancel" type="button" hidden>Cancel</button>
   </form>
 </section>
 <div class="wrap" id="app">
@@ -198,7 +208,7 @@ img{max-width:100%}
   </main>
 
   <main id="hist" class="hist" hidden></main>
-  <div class="acct" id="acct" hidden><span id="acct-who"></span><button class="ghost" id="signout">Sign out</button></div>
+  <div class="acct" id="acct" hidden><span id="acct-who"></span><span style="display:flex;gap:8px"><button class="ghost" id="chpass">Change password</button><button class="ghost" id="signout">Sign out</button></span></div>
 </div>
 
 <div class="timer" id="timer" hidden>
@@ -268,6 +278,9 @@ function lsSave(){ try{ localStorage.setItem(LS, JSON.stringify(sessions)) }catc
 let queue = new Set((()=>{ try{ return JSON.parse(localStorage.getItem(LQ)||"[]") }catch(e){ return [] } })());
 function saveQueue(){ try{ localStorage.setItem(LQ, JSON.stringify([...queue])) }catch(e){} }
 const cfg = window.SHRED_CONFIG || {};
+const linkHash = new URLSearchParams(location.hash.slice(1));
+const fromResetLink = linkHash.get("type") === "recovery";
+const linkError = linkHash.get("error_code");
 let sb = null, flushing = false, me = null;
 
 const toRow = s => ({ id:s.id, who:whoOf(s), day:s.day, date:s.date, finished:!!s.finished, data:s, updated_at:new Date().toISOString() });
@@ -326,6 +339,36 @@ async function initStore(){
 }
 
 /* ---------- sign in ---------- */
+function showNewPass(fromApp){
+  $("app").hidden = true; $("auth").hidden = false;
+  $("auth-form").hidden = true; $("newpass-form").hidden = false;
+  $("auth-intro").textContent = fromApp ? `Choose a new password for ${me}.` : `Reset link accepted. Choose a new password for ${me}.`;
+  $("newpass-cancel").hidden = !fromApp;
+  $("newpass").focus();
+}
+$("newpass-form").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const a=$("newpass").value, b=$("newpass2").value;
+  if(a.length<6) return $("newpass-msg").textContent="Use at least 6 characters.";
+  if(a!==b) return $("newpass-msg").textContent="Those two passwords don't match.";
+  $("newpass-go").disabled=true; $("newpass-msg").textContent="Saving…";
+  const { error } = await sb.auth.updateUser({ password:a });
+  $("newpass-go").disabled=false;
+  if(error) return $("newpass-msg").textContent = error.message;
+  $("newpass-msg").classList.add("ok"); $("newpass-msg").textContent="Password saved. Opening the app…";
+  history.replaceState(null,"",location.pathname); setTimeout(()=>location.reload(), 900);
+});
+$("newpass-cancel").onclick = () => location.reload();
+$("auth-forgot").onclick = async () => {
+  const email = $("auth-email").value.trim();
+  if(!email) { $("auth-email").focus(); return showAuth("Type your email above, then tap Forgot password? again."); }
+  if(!sb) return showAuth("Sync isn't set up, so there's no password to reset.");
+  $("auth-forgot").disabled = true; showAuth("Sending reset email…", true);
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  $("auth-forgot").disabled = false;
+  showAuth(error ? (/rate|seconds/i.test(error.message) ? "Too many emails sent. Wait a few minutes and try again." : error.message)
+                 : "Check your email for a reset link. Open it on this phone to choose a new password.", !error);
+};
 let signingUp = false;
 function showAuth(msg, ok){
   $("app").hidden = true; $("auth").hidden = false;
@@ -360,6 +403,7 @@ $("auth-form").addEventListener("submit", async e => {
     showAuth(/invalid login/i.test(err.message) ? "That email and password don't match. Check them and try again." : err.message);
   }finally{ $("auth-go").disabled = false; }
 });
+$("chpass").onclick = () => showNewPass(true);
 $("signout").onclick = async () => { await sb?.auth.signOut(); try{ localStorage.removeItem(LS); localStorage.removeItem(LQ); }catch(e){} location.reload(); };
 
 /* ---------- helpers ---------- */
@@ -586,6 +630,9 @@ function suggestDay(){
 }
 renderWho(); cur = newSession(1); renderDays(); renderTrain();
 initStore().then(state=>{
+  if(fromResetLink && me) return showNewPass(false);
+  if(linkError) { history.replaceState(null,"",location.pathname);
+    if(state==="signin") return showAuth(linkError==="otp_expired" ? "That link has expired or was already used. Tap Forgot password? to get a new one." : "That link didn't work. Tap Forgot password? to get a new one."); }
   if(state==="signin") return showAuth();
   if(state==="notmember"){ showAuth(`${me} isn't on the members list yet. Ask Chris to add it, then sign in again.`); sb.auth.signOut(); return; }
   renderWho(); day=suggestDay(); cur=pickSession(day); renderDays(); renderTrain();
