@@ -3,7 +3,7 @@
 A phone-first workout logger for the Old Sckool Six-Week Shred plan, shared by Chris and Garry.
 
 - Four training days (Back, Legs, Shoulders, Arms) with every movement, target sets × reps and coaching pointers
-- Log kg and reps per set, tick it off, and a 90-second rest timer starts
+- Log kg and reps per set and tick it off
 - Last session's numbers show under each lift and as placeholders
 - Bodyweight, finisher minutes and notes per session
 - Progress tab: top set per lift, kg gained since the start, bodyweight trend, full history with edit and delete

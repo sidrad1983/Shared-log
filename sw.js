@@ -1,6 +1,6 @@
 // Offline support: app files come from the network when possible and fall back to the cache,
 // so the gym's patchy signal never stops you opening the app. Data calls to Supabase are never cached.
-const CACHE = "shred-v8";
+const CACHE = "shred-v9";
 const APP = ["./", "index.html", "config.js", "seed.js", "manifest.webmanifest", "icons/icon-192.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(APP)).then(() => self.skipWaiting())); });

@@ -510,7 +510,6 @@ $("list").addEventListener("click", e=>{
       const kg=$(`${k}-${j}-kg`), rp=$(`${k}-${j}-reps`);
       if(r.kg===""&&kg.placeholder!=="kg") r.kg=kg.placeholder;
       if(r.reps==="") r.reps=rp.placeholder;
-      startTimer(PLAN[day].ex.find(x=>slug(x[0])===k)[0]+` · set ${j+1} logged`);
     }
     touch(); renderTrain();
   } else if(b.dataset.add){ const rows=cur.ex[b.dataset.add]; const l=rows[rows.length-1]; rows.push({kg:l?.kg||"",reps:"",done:false}); touch(); renderTrain(); }
